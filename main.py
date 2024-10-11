@@ -1,10 +1,7 @@
-# https://pypi.org/project/pytubefix/
-# https://github.com/JuanBindez/pytubefix
-# pytube가 제대로 동작을 안하므로 해당 라이브러리 사용
-
-from pytubefix import YouTube # pip install pytubefix
+from pytubefix import YouTube  # pip install pytubefix
 import os
-from PyQt5 import QtWidgets, QtCore # pip install pytube PyQt5
+from PyQt5 import QtWidgets, QtCore  # pip install PyQt5
+from moviepy.editor import AudioFileClip  # pip install moviepy
 
 class YoutubeDownloaderApp(QtWidgets.QWidget):
     def __init__(self):
@@ -65,10 +62,9 @@ class YoutubeDownloaderApp(QtWidgets.QWidget):
             else:
                 stream = yt.streams.filter(only_audio=True).first()  # 오디오만 선택
                 output_file = stream.download(output_path=save_path)
-                base, ext = os.path.splitext(output_file)
-                new_file = base + '.mp3'
-                os.rename(output_file, new_file)
-                output_file = new_file  # MP3 파일로 업데이트
+
+                # 오디오 파일을 MP3로 변환
+                output_file = self.convert_to_mp3_with_moviepy(output_file)
 
             # 중복 파일 이름 처리
             unique_file = self.get_unique_filename(save_path, title, ".mp4" if self.video_radio.isChecked() else ".mp3")
@@ -110,6 +106,21 @@ class YoutubeDownloaderApp(QtWidgets.QWidget):
             counter += 1
             
         return filename
+
+    def convert_to_mp3_with_moviepy(self, input_file):
+        """Convert the given audio file to MP3 format using moviepy without generating MP4 files."""
+        try:
+            # 오디오 클립을 불러와서 mp3로 변환
+            audio_clip = AudioFileClip(input_file)
+            mp3_file = os.path.splitext(input_file)[0] + ".mp3"
+            audio_clip.write_audiofile(mp3_file, codec='mp3')  # MP4 파일이 생성되지 않게 처리
+            
+            # MP3 변환이 끝난 후, 원본 MP4 파일을 삭제
+            os.remove(input_file)
+            
+            return mp3_file
+        except Exception as e:
+            raise RuntimeError(f"Failed to convert to MP3: {str(e)}")
 
 # PyQt5 앱 실행
 app = QtWidgets.QApplication([])
