@@ -75,8 +75,9 @@ class YoutubeDownloaderApp(QtWidgets.QWidget):
         except Exception as e:
             self.status_label.setText(f"Status: Error - {str(e)}")
         
-        # UI 재활성화
-        self.enable_ui()
+        finally:
+            # UI 재활성화
+            self.enable_ui()
 
     def disable_ui(self):
         """Disable the UI elements during the download process."""
